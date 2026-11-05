@@ -18,46 +18,58 @@ import org.springframework.web.client.RestClientException;
 
 /**
  * Integração com a API Consulta CPF do Serpro (base da Receita Federal).
- * Confira URL, formato de resposta e códigos HTTP na documentação atual do Serpro
- * e no contrato que você assinar; ajuste aqui se algo for diferente.
+ *
+ * Suporta dois modos de autenticação:
+ * - Token fixo: defina serpro.static-token com o Bearer token (ex: ambiente trial)
+ * - OAuth2 client_credentials: defina serpro.consumer-key e serpro.consumer-secret
  */
 @Service
 @ConditionalOnProperty(name = "cpf.provider", havingValue = "serpro")
 public class SerproConsultaCpfService implements ConsultaCpfService {
 
-    private static final DateTimeFormatter NASC = DateTimeFormatter.ofPattern("ddMMyyyy");
+    private static final DateTimeFormatter NASC_FMT = DateTimeFormatter.ofPattern("ddMMyyyy");
 
     private final RestClient http = RestClient.create();
-    private final String baseUrl, tokenUrl, key, secret;
-    private String token;
+    private final String baseUrl, tokenUrl, key, secret, staticToken;
+    private String cachedToken;
     private Instant expira = Instant.EPOCH;
 
     public SerproConsultaCpfService(
             @Value("${serpro.base-url}") String baseUrl,
             @Value("${serpro.token-url}") String tokenUrl,
-            @Value("${serpro.consumer-key}") String key,
-            @Value("${serpro.consumer-secret}") String secret) {
-        this.baseUrl = baseUrl; this.tokenUrl = tokenUrl; this.key = key; this.secret = secret;
+            @Value("${serpro.consumer-key:}") String key,
+            @Value("${serpro.consumer-secret:}") String secret,
+            @Value("${serpro.static-token:}") String staticToken) {
+        this.baseUrl = baseUrl;
+        this.tokenUrl = tokenUrl;
+        this.key = key;
+        this.secret = secret;
+        this.staticToken = staticToken;
     }
 
     @Override
     public ResultadoConsulta consultar(String cpf, LocalDate nascimento) {
+        // A API Trial exige a data de nascimento na URL: /cpf/{cpf}/{ddMMyyyy}
+        String nascStr = nascimento.format(NASC_FMT);
         try {
             Map<String, Object> r = http.get()
-                .uri(baseUrl + "/cpf/{cpf}", cpf)
+                .uri(baseUrl + "/cpf/{cpf}/{nasc}", cpf, nascStr)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+                .header(HttpHeaders.ACCEPT, "application/json")
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
+
             if (r == null) return ResultadoConsulta.naoEncontrado();
 
             String nome = (String) r.get("nome");
-            String nasc = (String) r.get("nascimento");
+            String nascRetorno = (String) r.get("nascimento");
             @SuppressWarnings("unchecked")
             Map<String, Object> sit = (Map<String, Object>) r.get("situacao");
             String situacao = sit == null ? null : (String) sit.get("descricao");
 
             return new ResultadoConsulta(true, nome,
-                nasc == null ? null : LocalDate.parse(nasc, NASC), situacao);
+                nascRetorno == null ? null : LocalDate.parse(nascRetorno, NASC_FMT), situacao);
+
         } catch (HttpClientErrorException.NotFound e) {
             return ResultadoConsulta.naoEncontrado();
         } catch (RestClientException e) {
@@ -66,7 +78,12 @@ public class SerproConsultaCpfService implements ConsultaCpfService {
     }
 
     private synchronized String token() {
-        if (token != null && Instant.now().isBefore(expira)) return token;
+        // Se há token fixo configurado (ex: trial), usa diretamente sem OAuth2
+        if (!staticToken.isBlank()) return staticToken;
+
+        // Caso contrário, obtém/renova via OAuth2 client_credentials
+        if (cachedToken != null && Instant.now().isBefore(expira)) return cachedToken;
+
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
         Map<String, Object> r = http.post()
@@ -76,9 +93,10 @@ public class SerproConsultaCpfService implements ConsultaCpfService {
             .body(form)
             .retrieve()
             .body(new ParameterizedTypeReference<>() {});
-        token = (String) r.get("access_token");
+
+        cachedToken = (String) r.get("access_token");
         int seg = ((Number) r.getOrDefault("expires_in", 3600)).intValue();
         expira = Instant.now().plusSeconds(Math.max(seg - 60, 30));
-        return token;
+        return cachedToken;
     }
 }

@@ -1,5 +1,6 @@
 C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\CadastroApplication.java
 C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\controller\CadastroController.java
+C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\listener\SessaoListener.java
 C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\model\CadastroForm.java
 C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\model\Pessoa.java
 C:\Users\Usuario\Documents\JavaCpf\cadastro-cpf\src\main\java\br\com\exemplo\cadastro\repository\PessoaRepository.java

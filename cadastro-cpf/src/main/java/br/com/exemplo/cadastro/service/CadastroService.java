@@ -5,6 +5,7 @@ import br.com.exemplo.cadastro.model.Pessoa;
 import br.com.exemplo.cadastro.repository.PessoaRepository;
 import java.text.Normalizer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CadastroService {
@@ -17,13 +18,13 @@ public class CadastroService {
         this.consulta = consulta;
     }
 
-    public Pessoa cadastrar(CadastroForm f) {
+    public Pessoa cadastrar(CadastroForm f, String sessionId) {
         String cpf = CpfValidator.somenteDigitos(f.getCpf());
 
         if (!CpfValidator.valido(cpf)) {
             throw new CadastroException("CPF inválido.");
         }
-        if (repo.existsByCpf(cpf)) {
+        if (repo.existsByCpfAndSessionId(cpf, sessionId)) {
             throw new CadastroException("Este CPF já está cadastrado.");
         }
 
@@ -44,7 +45,12 @@ public class CadastroService {
             throw new CadastroException("Cadastro não realizado. CPF com situação cadastral irregular: " + r.situacao() + ". Verifique e tente novamente.");
         }
 
-        return repo.save(new Pessoa(f.getNome().trim(), cpf, f.getDataNascimento()));
+        return repo.save(new Pessoa(f.getNome().trim(), cpf, f.getDataNascimento(), sessionId));
+    }
+
+    @Transactional
+    public void limparSessao(String sessionId) {
+        repo.deleteBySessionId(sessionId);
     }
 
     private static String normaliza(String s) {

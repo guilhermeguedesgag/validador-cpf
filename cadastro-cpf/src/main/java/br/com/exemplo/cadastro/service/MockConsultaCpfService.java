@@ -17,8 +17,8 @@ public class MockConsultaCpfService implements ConsultaCpfService {
         "11144477735", new ResultadoConsulta(true,
                     "João Souza", LocalDate.of(1985, 12, 1), "Regular"),
 
-        "36269364817", new ResultadoConsulta(true,
-                    "Guilherme Antonio Guedes", LocalDate.of(1988, 8, 12), "Regular")
+        "11122233344", new ResultadoConsulta(true,
+                    "Guilherme Guedes", LocalDate.of(1988, 8, 12), "Regular")
     );
 
     @Override

@@ -2,9 +2,10 @@
 
 ## Rodar
     mvn spring-boot:run
+    No terminal
 Acesse http://localhost:8080
 
-## Testar com o provedor mock (padrão)
+## Testando localmente (ambiente mockado)
 - Maria Silva, 529.982.247-25, 15/05/1990 -> cadastra
 - João Souza, 111.444.777-35, 01/12/1985 -> cadastra
 - Mesmo CPF com nome ou data diferentes -> "CPF não pertence à pessoa informada."
@@ -40,3 +41,8 @@ https://apicenter.estaleiro.serpro.gov.br/documentacao/consulta-cpf/pt/quick_sta
 
 API de deste:
 https://apicenter.estaleiro.serpro.gov.br/documentacao/consulta-cpf/pt/demonstracao/demo-consulta-cpf-df-v3/
+
+
+## Mockado já está Ok, validando o nome das pessoas
+
+Todo: fazer a validação pela API do Serpro

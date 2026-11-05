@@ -3,6 +3,7 @@ package br.com.exemplo.cadastro.controller;
 import br.com.exemplo.cadastro.model.CadastroForm;
 import br.com.exemplo.cadastro.service.CadastroException;
 import br.com.exemplo.cadastro.service.CadastroService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,10 +26,11 @@ public class CadastroController {
 
     @PostMapping("/cadastro")
     public String cadastrar(@Valid @ModelAttribute("form") CadastroForm form,
-                            BindingResult result, RedirectAttributes redirect) {
+                            BindingResult result, RedirectAttributes redirect,
+                            HttpSession session) {
         if (result.hasErrors()) return "cadastro";
         try {
-            var pessoa = service.cadastrar(form);
+            var pessoa = service.cadastrar(form, session.getId());
             redirect.addFlashAttribute("nome", pessoa.getNome());
             return "redirect:/sucesso";
         } catch (CadastroException e) {
@@ -44,3 +46,4 @@ public class CadastroController {
     @PostMapping("/sucesso")
     public String sucessoPost() { return "redirect:/"; }
 }
+
