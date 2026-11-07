@@ -1,7 +1,0 @@
-target/
-data/
-.idea/
-.git/
-*.md
-*.trace.db
-*.mv.db
