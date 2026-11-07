@@ -1,18 +1,20 @@
 package br.com.exemplo.cadastro.listener;
 
 import br.com.exemplo.cadastro.service.CadastroService;
-import jakarta.servlet.annotation.WebListener;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.stereotype.Component;
 
 /**
  * Ouve eventos de sessão HTTP.
- * Quando uma sessão é destruída (expirou ou usuário fechou o navegador),
+ * Quando uma sessão expira ou o usuário fecha o navegador,
  * apaga automaticamente todos os cadastros vinculados a ela.
+ *
+ * Registrado como bean do Spring (sem @WebListener) para permitir
+ * injeção de dependência via construtor.
  */
 @Component
-@WebListener
 public class SessaoListener implements HttpSessionListener {
 
     private final CadastroService service;
@@ -23,7 +25,6 @@ public class SessaoListener implements HttpSessionListener {
 
     @Override
     public void sessionDestroyed(HttpSessionEvent event) {
-        String sessionId = event.getSession().getId();
-        service.limparSessao(sessionId);
+        service.limparSessao(event.getSession().getId());
     }
 }
