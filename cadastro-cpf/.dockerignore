@@ -1,6 +1,7 @@
-# Ignora arquivos desnecessários no build Docker
 target/
 data/
 .idea/
 .git/
 *.md
+*.trace.db
+*.mv.db
