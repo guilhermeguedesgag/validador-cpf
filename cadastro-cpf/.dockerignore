@@ -1,6 +1,6 @@
+# Ignora arquivos desnecessários no build Docker
 target/
-.idea/
 data/
-*.md
+.idea/
 .git/
-.gitignore
+*.md
